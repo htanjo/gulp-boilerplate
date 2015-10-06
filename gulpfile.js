@@ -2,9 +2,11 @@
 
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
+var runSequence = require('run-sequence');
 var bs = require('browser-sync').create();
+var del = require('del');
 
-gulp.task('serve', function() {
+gulp.task('serve', function () {
   bs.init({
     notify: false,
     port: 9000,
@@ -18,3 +20,29 @@ gulp.task('serve', function() {
     'app/js/**/*.js'
   ]).on('change', bs.reload);
 });
+
+gulp.task('clean', del.bind(null, ['dist']));
+
+gulp.task('scripts', function () {
+  return gulp.src([
+    'app/js/**/*.js'
+  ])
+    .pipe($.uglify())
+    .pipe(gulp.dest('dist/js'));
+});
+
+gulp.task('html', function () {
+  return gulp.src([
+    'app/**/*.html'
+  ])
+    .pipe($.htmlmin({
+      collapseWhitespace: true
+    }))
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('build', ['clean'], function (callback) {
+  runSequence(['scripts', 'html'], callback);
+});
+
+gulp.task('default', ['build']);
