@@ -49,4 +49,6 @@ gulp.task('build', ['clean'], function (callback) {
   runSequence(['scripts', 'html'], callback);
 });
 
-gulp.task('default', ['build']);
+gulp.task('default', function (callback) {
+  runSequence('lint', 'build', callback);
+});
