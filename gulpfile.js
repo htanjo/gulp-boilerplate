@@ -32,17 +32,13 @@ gulp.task('serve', function () {
 gulp.task('clean', del.bind(null, ['dist']));
 
 gulp.task('scripts', function () {
-  return gulp.src([
-    'app/js/**/*.js'
-  ])
+  return gulp.src('app/js/**/*.js')
     .pipe($.uglify())
     .pipe(gulp.dest('dist/js'));
 });
 
 gulp.task('html', function () {
-  return gulp.src([
-    'app/**/*.html'
-  ])
+  return gulp.src('app/**/*.html')
     .pipe($.htmlmin({
       collapseWhitespace: true
     }))
