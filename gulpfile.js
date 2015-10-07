@@ -6,6 +6,13 @@ var runSequence = require('run-sequence');
 var bs = require('browser-sync').create();
 var del = require('del');
 
+gulp.task('lint', function () {
+  return gulp.src('app/js/**/*.js')
+    .pipe($.eslint())
+    .pipe($.eslint.format())
+    .pipe($.eslint.failAfterError());
+});
+
 gulp.task('serve', function () {
   bs.init({
     notify: false,
@@ -19,6 +26,7 @@ gulp.task('serve', function () {
     'app/**/*.html',
     'app/js/**/*.js'
   ]).on('change', bs.reload);
+  gulp.watch('app/js/**/*.js', ['lint']);
 });
 
 gulp.task('clean', del.bind(null, ['dist']));
