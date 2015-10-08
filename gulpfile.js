@@ -30,7 +30,7 @@ gulp.task('serve', ['styles'], function () {
   gulp.watch('app/js/**/*.js', ['lint']);
 });
 
-gulp.task('clean', del.bind(null, ['dist']));
+gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
 gulp.task('styles', function () {
   return gulp.src('app/_sass/*.scss')
