@@ -13,25 +13,6 @@ gulp.task('lint', function () {
     .pipe($.eslint.failAfterError());
 });
 
-gulp.task('serve', ['styles'], function () {
-  bs.init({
-    notify: false,
-    port: 9000,
-    open: true,
-    server: {
-      baseDir: ['.tmp', 'app']
-    }
-  });
-  gulp.watch([
-    'app/**/*.html',
-    'app/js/**/*.js'
-  ]).on('change', bs.reload);
-  gulp.watch('app/_sass/**/*.scss', ['styles', bs.reload]);
-  gulp.watch('app/js/**/*.js', ['lint']);
-});
-
-gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
-
 gulp.task('styles', function () {
   return gulp.src('app/_sass/*.scss')
     .pipe($.sourcemaps.init())
@@ -63,6 +44,30 @@ gulp.task('html', function () {
       collapseWhitespace: true
     }))
     .pipe(gulp.dest('dist'));
+});
+
+gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
+
+gulp.task('serve', ['styles'], function () {
+  bs.init({
+    notify: false,
+    server: {
+      baseDir: ['.tmp', 'app']
+    }
+  });
+  gulp.watch([
+    'app/**/*.html',
+    'app/js/**/*.js'
+  ]).on('change', bs.reload);
+  gulp.watch('app/_sass/**/*.scss', ['styles', bs.reload]);
+  gulp.watch('app/js/**/*.js', ['lint']);
+});
+
+gulp.task('serve:dist', function () {
+  bs.init({
+    notify: false,
+    server: 'dist'
+  });
 });
 
 gulp.task('build', ['clean'], function (callback) {
