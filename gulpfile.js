@@ -35,7 +35,9 @@ gulp.task('clean', del.bind(null, ['dist']));
 gulp.task('styles', function () {
   return gulp.src('app/_sass/*.scss')
     .pipe($.sass().on('error', $.sass.logError))
-    .pipe(gulp.dest('.tmp/css'));
+    .pipe(gulp.dest('.tmp/css'))
+    .pipe($.minifyCss())
+    .pipe(gulp.dest('dist/css'));
 });
 
 gulp.task('scripts', function () {
@@ -53,7 +55,7 @@ gulp.task('html', function () {
 });
 
 gulp.task('build', ['clean'], function (callback) {
-  runSequence(['scripts', 'html'], callback);
+  runSequence(['styles', 'scripts', 'html'], callback);
 });
 
 gulp.task('default', function (callback) {
