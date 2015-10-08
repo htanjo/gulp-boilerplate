@@ -36,6 +36,15 @@ gulp.task('styles', function () {
   return gulp.src('app/_sass/*.scss')
     .pipe($.sourcemaps.init())
     .pipe($.sass().on('error', $.sass.logError))
+    .pipe($.autoprefixer({
+      browsers: [
+        'last 2 versions',
+        'Explorer >= 8',
+        'Firefox ESR',
+        'Android >= 2.3',
+        'iOS >= 7'
+      ]
+    }))
     .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/css'))
     .pipe($.minifyCss())
