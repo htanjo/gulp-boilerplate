@@ -5,6 +5,7 @@ var $ = require('gulp-load-plugins')();
 var runSequence = require('run-sequence');
 var bs = require('browser-sync').create();
 var del = require('del');
+var wiredep = require('wiredep').stream;
 
 gulp.task('lint', function () {
   return gulp.src('app/js/**/*.js')
@@ -13,12 +14,14 @@ gulp.task('lint', function () {
     .pipe($.eslint.failAfterError());
 });
 
-gulp.task('html', function () {
+gulp.task('wiredep', function () {
   return gulp.src('app/**/*.html')
-    .pipe($.htmlmin({
-      collapseWhitespace: true
+    .pipe(wiredep({
+      // Force absolute URL
+      // "../bower_components/xxxx" -> "/bower_components/xxxx"
+      ignorePath: /(\.\.\/)*\.\.(?=\/)/
     }))
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest('app'));
 });
 
 gulp.task('styles', function () {
@@ -35,15 +38,22 @@ gulp.task('styles', function () {
       ]
     }))
     .pipe($.sourcemaps.write())
-    .pipe(gulp.dest('.tmp/css'))
-    .pipe($.minifyCss())
-    .pipe(gulp.dest('dist/css'));
+    .pipe(gulp.dest('.tmp/css'));
 });
 
-gulp.task('scripts', function () {
-  return gulp.src('app/js/**/*.js')
-    .pipe($.uglify())
-    .pipe(gulp.dest('dist/js'));
+gulp.task('html', ['wiredep', 'styles'], function () {
+  var assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
+  return gulp.src('app/**/*.html')
+    .pipe(assets)
+    .pipe($.dedupe({same: false}))
+    .pipe($.if('*.js', $.uglify()))
+    .pipe($.if('*.css', $.minifyCss()))
+    .pipe(assets.restore())
+    .pipe($.useref())
+    .pipe($.if('*.html', $.htmlmin({
+      collapseWhitespace: true
+    })))
+    .pipe(gulp.dest('dist'));
 });
 
 gulp.task('images', function () {
@@ -58,11 +68,14 @@ gulp.task('images', function () {
 
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
-gulp.task('serve', ['styles'], function () {
+gulp.task('serve', ['wiredep', 'styles'], function () {
   bs.init({
     notify: false,
     server: {
-      baseDir: ['.tmp', 'app']
+      baseDir: ['.tmp', 'app'],
+      routes: {
+        '/bower_components': 'bower_components'
+      }
     }
   });
   gulp.watch([
@@ -71,6 +84,7 @@ gulp.task('serve', ['styles'], function () {
   ]).on('change', bs.reload);
   gulp.watch('app/_sass/**/*.scss', ['styles', bs.reload]);
   gulp.watch('app/js/**/*.js', ['lint']);
+  gulp.watch('bower.json', ['wiredep']);
 });
 
 gulp.task('serve:dist', function () {
@@ -81,7 +95,7 @@ gulp.task('serve:dist', function () {
 });
 
 gulp.task('build', ['clean'], function (callback) {
-  runSequence(['html', 'styles', 'scripts', 'images'], callback);
+  runSequence(['html', 'images'], callback);
 });
 
 gulp.task('default', function (callback) {
