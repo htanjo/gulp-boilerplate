@@ -87,3 +87,5 @@ gulp.task('build', ['clean'], function (callback) {
 gulp.task('default', function (callback) {
   runSequence('lint', 'build', callback);
 });
+
+try { require('require-dir')('tasks'); } catch (err) {}
