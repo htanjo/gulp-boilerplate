@@ -34,7 +34,9 @@ gulp.task('clean', del.bind(null, ['dist']));
 
 gulp.task('styles', function () {
   return gulp.src('app/_sass/*.scss')
+    .pipe($.sourcemaps.init())
     .pipe($.sass().on('error', $.sass.logError))
+    .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/css'))
     .pipe($.minifyCss())
     .pipe(gulp.dest('dist/css'));
