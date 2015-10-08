@@ -13,23 +13,30 @@ gulp.task('lint', function () {
     .pipe($.eslint.failAfterError());
 });
 
-gulp.task('serve', function () {
+gulp.task('serve', ['styles'], function () {
   bs.init({
     notify: false,
     port: 9000,
     open: true,
     server: {
-      baseDir: ['app']
+      baseDir: ['.tmp', 'app']
     }
   });
   gulp.watch([
     'app/**/*.html',
     'app/js/**/*.js'
   ]).on('change', bs.reload);
+  gulp.watch('app/_sass/**/*.scss', ['styles', bs.reload]);
   gulp.watch('app/js/**/*.js', ['lint']);
 });
 
 gulp.task('clean', del.bind(null, ['dist']));
+
+gulp.task('styles', function () {
+  return gulp.src('app/_sass/*.scss')
+    .pipe($.sass().on('error', $.sass.logError))
+    .pipe(gulp.dest('.tmp/css'));
+});
 
 gulp.task('scripts', function () {
   return gulp.src('app/js/**/*.js')
