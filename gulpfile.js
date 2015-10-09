@@ -48,8 +48,10 @@ gulp.task('html', ['wiredep', 'styles'], function () {
     .pipe($.dedupe({same: false}))
     .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.css', $.minifyCss()))
+    .pipe($.rev())
     .pipe(assets.restore())
     .pipe($.useref())
+    .pipe($.revReplace())
     .pipe($.if('*.html', $.htmlmin({
       collapseWhitespace: true
     })))
