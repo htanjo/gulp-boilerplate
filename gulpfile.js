@@ -41,7 +41,22 @@ gulp.task('styles', function () {
     .pipe(gulp.dest('.tmp/css'));
 });
 
-gulp.task('html', ['wiredep', 'styles'], function () {
+gulp.task('sprites', function () {
+  return gulp.src('app/img/_sprites/*.png')
+    .pipe($.spritesmith({
+      imgName: 'img/sprites.png',
+      cssName: 'css/sprites.css',
+      padding: 2,
+      cssOpts: {
+        cssSelector: function (item) {
+          return '.sprite-' + item.name;
+        }
+      }
+    }))
+    .pipe(gulp.dest('.tmp'));
+});
+
+gulp.task('html', ['wiredep', 'styles', 'sprites'], function () {
   var assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
   return gulp.src('app/**/*.html')
     .pipe(assets)
@@ -58,8 +73,12 @@ gulp.task('html', ['wiredep', 'styles'], function () {
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('images', function () {
-  return gulp.src('app/img/**/*')
+gulp.task('images', ['sprites'], function () {
+  return gulp.src([
+    'app/img/**/*',
+    '!app/img/_sprites{,/**}',
+    '.tmp/img/*'
+  ])
     .pipe($.cache($.imagemin({
       progressive: true,
       interlaced: true,
@@ -70,7 +89,7 @@ gulp.task('images', function () {
 
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
-gulp.task('serve', ['wiredep', 'styles'], function () {
+gulp.task('serve', ['wiredep', 'styles', 'sprites'], function () {
   bs.init({
     notify: false,
     server: {
@@ -86,6 +105,7 @@ gulp.task('serve', ['wiredep', 'styles'], function () {
   ]).on('change', bs.reload);
   gulp.watch('app/_sass/**/*.scss', ['styles', bs.reload]);
   gulp.watch('app/js/**/*.js', ['lint']);
+  gulp.watch('app/img/_sprites/*.png', ['sprites']);
   gulp.watch('bower.json', ['wiredep']);
 });
 
