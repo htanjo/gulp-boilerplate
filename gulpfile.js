@@ -2,7 +2,12 @@
 
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
 var runSequence = require('run-sequence');
+var browserify = require('browserify');
+var watchify = require('watchify');
+var assign = require('lodash.assign');
 var bs = require('browser-sync').create();
 var del = require('del');
 var wiredep = require('wiredep').stream;
@@ -41,6 +46,38 @@ gulp.task('styles', function () {
     .pipe(gulp.dest('.tmp/css'));
 });
 
+function buildScripts(watch) {
+  var opts = {
+    entries: ['app/js/main.js'],
+    debug: true
+  };
+  var bundler = watch ? watchify(browserify(assign({}, watchify.args, opts))) : browserify(opts);
+  var bundle = function () {
+    return bundler.bundle()
+      .on('error', function (error) {
+        $.util.log($.util.colors.red('Browserify error:') + '\n' + error.message);
+      })
+      .pipe(source('main.js'))
+      .pipe(buffer())
+      .pipe($.sourcemaps.init({loadMaps: true}))
+      .pipe($.sourcemaps.write())
+      .pipe(gulp.dest('.tmp/js'));
+  }
+  if (watch) {
+    bundler.on('update', bundle);
+    bundler.on('log', $.util.log);
+  }
+  return bundle();
+}
+
+gulp.task('scripts', function () {
+  return buildScripts();
+});
+
+gulp.task('scripts:watch', function () {
+  return buildScripts(true);
+});
+
 gulp.task('sprites', function () {
   return gulp.src('app/img/_sprites/*.png')
     .pipe($.spritesmith({
@@ -56,8 +93,8 @@ gulp.task('sprites', function () {
     .pipe(gulp.dest('.tmp'));
 });
 
-gulp.task('html', ['wiredep', 'styles', 'sprites'], function () {
-  var assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
+gulp.task('html', ['wiredep', 'styles', 'scripts', 'sprites'], function () {
+  var assets = $.useref.assets({searchPath: ['.tmp', '.']});
   return gulp.src('app/**/*.html')
     .pipe(assets)
     .pipe($.dedupe({same: false}))
@@ -89,7 +126,7 @@ gulp.task('images', ['sprites'], function () {
 
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
-gulp.task('serve', ['wiredep', 'styles', 'sprites'], function () {
+gulp.task('serve', ['wiredep', 'styles', 'scripts:watch', 'sprites'], function () {
   bs.init({
     notify: false,
     server: {
@@ -101,7 +138,7 @@ gulp.task('serve', ['wiredep', 'styles', 'sprites'], function () {
   });
   gulp.watch([
     'app/**/*.html',
-    'app/js/**/*.js'
+    '.tmp/js/**/*.js'
   ]).on('change', bs.reload);
   gulp.watch('app/_sass/**/*.scss', ['styles', bs.reload]);
   gulp.watch('app/js/**/*.js', ['lint']);
