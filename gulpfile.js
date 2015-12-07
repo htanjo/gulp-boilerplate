@@ -10,7 +10,6 @@ var watchify = require('watchify');
 var assign = require('lodash.assign');
 var bs = require('browser-sync').create();
 var del = require('del');
-var wiredep = require('wiredep').stream;
 
 gulp.task('lint', function () {
   return gulp.src('app/js/**/*.js')
@@ -19,21 +18,10 @@ gulp.task('lint', function () {
     .pipe($.eslint.failAfterError());
 });
 
-gulp.task('wiredep', function () {
-  return gulp.src('app/**/*.html')
-    .pipe(wiredep({
-      // Force absolute URL
-      // "../bower_components/xxxx" -> "/bower_components/xxxx"
-      ignorePath: /(\.\.\/)*\.\.(?=\/)/
-    }))
-    .pipe(gulp.dest('app'));
-});
-
-gulp.task('styles', function () {
-  return gulp.src('app/_sass/*.scss')
-    .pipe($.sourcemaps.init())
-    .pipe($.sass().on('error', $.sass.logError))
-    .pipe($.autoprefixer({
+function buildStyles() {
+  var processors = [
+    require('postcss-import')({path: '.tmp/css'}),
+    require('autoprefixer')({
       browsers: [
         'last 2 versions',
         'Explorer >= 8',
@@ -41,9 +29,24 @@ gulp.task('styles', function () {
         'Android >= 2.3',
         'iOS >= 7'
       ]
-    }))
+    }),
+    require('postcss-url')({url: 'rebase'}),
+    require('postcss-copy-assets')({base: '.tmp'})
+  ];
+  return gulp.src('app/_sass/*.scss')
+    .pipe($.sourcemaps.init())
+    .pipe($.sass().on('error', $.sass.logError))
+    .pipe($.postcss(processors, {to: '.tmp/css/main.css'}))
     .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/css'));
+}
+
+gulp.task('styles', function () {
+  return buildStyles();
+});
+
+gulp.task('styles:all', ['sprites'], function () {
+  return buildStyles();
 });
 
 function buildScripts(watch) {
@@ -93,7 +96,7 @@ gulp.task('sprites', function () {
     .pipe(gulp.dest('.tmp'));
 });
 
-gulp.task('html', ['wiredep', 'styles', 'scripts', 'sprites'], function () {
+gulp.task('html', ['styles:all', 'scripts'], function () {
   var assets = $.useref.assets({searchPath: ['.tmp', '.']});
   return gulp.src('app/**/*.html')
     .pipe(assets)
@@ -124,16 +127,18 @@ gulp.task('images', ['sprites'], function () {
     .pipe(gulp.dest('dist/img'));
 });
 
+gulp.task('assets', ['styles:all'], function () {
+  return gulp.src('.tmp/node_modules/**')
+    .pipe(gulp.dest('dist/node_modules'));
+});
+
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
-gulp.task('serve', ['wiredep', 'styles', 'scripts:watch', 'sprites'], function () {
+gulp.task('serve', ['styles:all', 'scripts:watch'], function () {
   bs.init({
     notify: false,
     server: {
-      baseDir: ['.tmp', 'app'],
-      routes: {
-        '/bower_components': 'bower_components'
-      }
+      baseDir: ['.tmp', 'app']
     }
   });
   gulp.watch([
@@ -142,8 +147,7 @@ gulp.task('serve', ['wiredep', 'styles', 'scripts:watch', 'sprites'], function (
   ]).on('change', bs.reload);
   gulp.watch('app/_sass/**/*.scss', ['styles', bs.reload]);
   gulp.watch('app/js/**/*.js', ['lint']);
-  gulp.watch('app/img/_sprites/*.png', ['sprites']);
-  gulp.watch('bower.json', ['wiredep']);
+  gulp.watch('app/img/_sprites/*.png', ['styles:all', bs.reload]);
 });
 
 gulp.task('serve:dist', function () {
@@ -154,7 +158,7 @@ gulp.task('serve:dist', function () {
 });
 
 gulp.task('build', ['clean'], function (callback) {
-  runSequence(['html', 'images'], callback);
+  runSequence(['html', 'images', 'assets'], callback);
 });
 
 gulp.task('default', function (callback) {

@@ -4,11 +4,11 @@
     "node": ">=0.10.0"
   },
   "devDependencies": {
+    "autoprefixer": "^6.1.2",
     "browser-sync": "^2.9.7",
     "browserify": "^11.2.0",
     "del": "^2.0.2",
     "gulp": "^3.9.0",
-    "gulp-autoprefixer": "^3.0.2",
     "gulp-cache": "^0.3.0",
     "gulp-dedupe": "0.0.2",
     "gulp-eslint": "^1.0.0",
@@ -18,6 +18,7 @@
     "gulp-imagemin": "^2.3.0",
     "gulp-load-plugins": "^0.10.0",
     "gulp-minify-css": "^1.2.1",
+    "gulp-postcss": "^6.0.1",
     "gulp-rev": "^6.0.1",
     "gulp-rev-replace": "^0.4.2",
     "gulp-sass": "^2.0.4",
@@ -27,14 +28,17 @@
     "gulp-util": "^3.0.7",
     "gulp.spritesmith": "^4.1.1",
     "lodash.assign": "^3.2.0",
+    "postcss-copy-assets": "^0.3.0",
+    "postcss-import": "^7.1.3",
+    "postcss-url": "^5.0.2",
     "require-dir": "^0.3.0",
     "run-sequence": "^1.1.4",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.4.0",
-    "wiredep": "^2.2.2"
+    "watchify": "^3.4.0"
   },
   "dependencies": {
+    "bootstrap": "^3.3.6",
     "jquery": "^2.1.4"
   }
 }
