@@ -12,7 +12,7 @@ var bs = require('browser-sync').create();
 var del = require('del');
 
 gulp.task('lint', function () {
-  return gulp.src('app/js/**/*.js')
+  return gulp.src('app/scripts/**/*.js')
     .pipe($.eslint())
     .pipe($.eslint.format())
     .pipe($.eslint.failAfterError());
@@ -21,7 +21,7 @@ gulp.task('lint', function () {
 function buildStyles(options) {
   var opts = options || {};
   var processors = [
-    require('postcss-import')({path: '.tmp/css'}),
+    require('postcss-import')({path: '.tmp/styles'}),
     require('autoprefixer')({
       browsers: [
         'last 2 versions',
@@ -34,14 +34,14 @@ function buildStyles(options) {
     require('postcss-url')({url: 'rebase'}),
     require('postcss-copy-assets')({base: '.tmp'})
   ];
-  return gulp.src('app/_sass/*.scss')
+  return gulp.src('app/styles/*.scss')
     .pipe($.sourcemaps.init())
     .pipe($.sass().on('error', $.sass.logError))
-    .pipe($.postcss(processors, {to: '.tmp/css/main.css'}))
+    .pipe($.postcss(processors, {to: '.tmp/styles/main.css'}))
     .pipe($.sourcemaps.write())
-    .pipe(gulp.dest('.tmp/css'))
+    .pipe(gulp.dest('.tmp/styles'))
     .pipe($.if(!opts.dev, $.minifyCss({sourceMap: false})))
-    .pipe($.if(!opts.dev, gulp.dest('dist/css')));
+    .pipe($.if(!opts.dev, gulp.dest('dist/styles')));
 }
 
 gulp.task('styles', ['sprites'], function () {
@@ -59,7 +59,7 @@ gulp.task('styles:serve', function () {
 function buildScripts(options) {
   var opts = options || {};
   var args = {
-    entries: ['app/js/main.js'],
+    entries: ['app/scripts/main.js'],
     debug: true
   };
   var bundler = opts.dev ? watchify(browserify(assign({}, watchify.args, args))) : browserify(args);
@@ -72,9 +72,9 @@ function buildScripts(options) {
       .pipe(buffer())
       .pipe($.sourcemaps.init({loadMaps: true}))
       .pipe($.sourcemaps.write())
-      .pipe(gulp.dest('.tmp/js'))
+      .pipe(gulp.dest('.tmp/scripts'))
       .pipe($.if(!opts.dev, $.uglify()))
-      .pipe($.if(!opts.dev, gulp.dest('dist/js')));
+      .pipe($.if(!opts.dev, gulp.dest('dist/scripts')));
   }
   if (opts.dev) {
     bundler.on('update', bundle);
@@ -92,10 +92,10 @@ gulp.task('scripts:dev', function () {
 });
 
 gulp.task('sprites', function () {
-  return gulp.src('app/img/_sprites/*.png')
+  return gulp.src('app/images/_sprites/*.png')
     .pipe($.spritesmith({
-      imgName: 'img/sprites.png',
-      cssName: 'css/sprites.css',
+      imgName: 'images/sprites.png',
+      cssName: 'styles/sprites.css',
       padding: 2,
       cssOpts: {
         cssSelector: function (item) {
@@ -116,16 +116,16 @@ gulp.task('html', function () {
 
 gulp.task('images', ['sprites'], function () {
   return gulp.src([
-    'app/img/**/*',
-    '!app/img/_*{,/**}',
-    '.tmp/img/**/*'
+    'app/images/**/*',
+    '!app/images/_*{,/**}',
+    '.tmp/images/**/*'
   ])
     .pipe($.cache($.imagemin({
       progressive: true,
       interlaced: true,
       svgoPlugins: [{cleanupIDs: false}]
     })))
-    .pipe(gulp.dest('dist/img'));
+    .pipe(gulp.dest('dist/images'));
 });
 
 gulp.task('assets', ['styles'], function () {
@@ -144,11 +144,11 @@ gulp.task('serve', ['styles:dev', 'scripts:dev'], function () {
   });
   gulp.watch([
     'app/**/*.html',
-    '.tmp/js/**/*.js'
+    '.tmp/scripts/**/*.js'
   ]).on('change', bs.reload);
-  gulp.watch('app/_sass/**/*.scss', ['styles:serve', bs.reload]);
-  gulp.watch('app/js/**/*.js', ['lint']);
-  gulp.watch('app/img/_sprites/*.png', ['styles:dev', bs.reload]);
+  gulp.watch('app/styles/**/*.scss', ['styles:serve', bs.reload]);
+  gulp.watch('app/scripts/**/*.js', ['lint']);
+  gulp.watch('app/images/_sprites/*.png', ['styles:dev', bs.reload]);
 });
 
 gulp.task('serve:dist', function () {
