@@ -52,10 +52,6 @@ gulp.task('styles:dev', ['sprites'], function () {
   return buildStyles({dev: true});
 });
 
-gulp.task('styles:serve', function () {
-  return buildStyles({dev: true});
-});
-
 function buildScripts(options) {
   var opts = options || {};
   var args = {
@@ -89,21 +85,6 @@ gulp.task('scripts', function () {
 
 gulp.task('scripts:dev', function () {
   return buildScripts({dev: true});
-});
-
-gulp.task('sprites', function () {
-  return gulp.src('app/images/_sprites/*.png')
-    .pipe($.spritesmith({
-      imgName: 'images/sprites.png',
-      cssName: 'styles/sprites.css',
-      padding: 2,
-      cssOpts: {
-        cssSelector: function (item) {
-          return '.sprite-' + item.name;
-        }
-      }
-    }))
-    .pipe(gulp.dest('.tmp'));
 });
 
 gulp.task('html', function () {
@@ -146,8 +127,8 @@ gulp.task('serve', ['styles:dev', 'scripts:dev'], function () {
     'app/**/*.html',
     '.tmp/scripts/**/*.js'
   ]).on('change', bs.reload);
-  gulp.watch('app/styles/**/*.scss', ['styles:serve', bs.reload]);
   gulp.watch('app/scripts/**/*.js', ['lint']);
+  gulp.watch('app/styles/**/*.scss', ['styles:dev', bs.reload]);
   gulp.watch('app/images/_sprites/*.png', ['styles:dev', bs.reload]);
 });
 
