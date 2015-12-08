@@ -3,6 +3,12 @@
   "engines": {
     "node": ">=0.10.0"
   },
+  "scripts": {
+    "lint": "gulp lint",
+    "start": "gulp serve",
+    "build": "gulp",
+    "deploy": "gulp deploy"
+  },
   "devDependencies": {
     "autoprefixer": "^6.1.2",
     "browser-sync": "^2.9.7",
