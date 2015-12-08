@@ -3,6 +3,6 @@
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 
-gulp.task('clear', function (callback) {
+gulp.task('cache-clean', function (callback) {
   return $.cache.clearAll(callback);
 });
