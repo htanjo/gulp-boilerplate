@@ -23,11 +23,11 @@ gulp.task('lint', function () {
 });
 
 // Core function to build stylesheets
-// - Compile styles and inject @import contents
-// - Add (or remove) vendor prefixes
-// - Resolve relative paths and copy assets
-// - [development] Attach sourcemaps
-// - [production] Minify source code
+//  - Compile styles and inject @import contents
+//  - Add (or remove) vendor prefixes
+//  - Resolve relative paths and copy assets
+//  - [development] Attach sourcemaps
+//  - [production] Minify source code
 function buildStyles(options) {
   var opts = options || {};
   var processors = [
@@ -61,10 +61,10 @@ gulp.task('styles', ['sprites'], buildStyles.bind(null));
 gulp.task('styles:dev', ['sprites'], buildStyles.bind(null, {dev: true}));
 
 // Core function to build JavaScripts
-// - Compile scripts using Browserify
-// - [development] Watch files and build incrementally
-// - [development] Attach sourcemaps
-// - [production] Minify source code
+//  - Compile scripts using Browserify
+//  - [development] Watch files and build incrementally
+//  - [development] Attach sourcemaps
+//  - [production] Minify source code
 function buildScripts(options, callback) {
   if (typeof options === 'function') {
     callback = options;
@@ -155,8 +155,8 @@ gulp.task('extras', function () {
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
 // Start local development server
-// - Watch files and reload automatically
-// - Sync interaction across browsers
+//  - Watch files and reload automatically
+//  - Sync interaction across browsers
 gulp.task('serve', ['styles:dev', 'scripts:dev'], function () {
   bs.init({
     notify: false,
