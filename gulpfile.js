@@ -42,7 +42,7 @@ function buildStyles(options) {
     require('postcss-copy-assets')({base: '.tmp'})
   ];
   return gulp.src('app/styles/*.scss')
-    .pipe($.sourcemaps.init())
+    .pipe($.sourcemaps.init({loadMaps: true}))
     .pipe($.sass().on('error', $.sass.logError))
     .pipe($.postcss(processors, {to: '.tmp/styles/main.css'}))
     .pipe($.sourcemaps.write())
