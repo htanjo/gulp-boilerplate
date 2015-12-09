@@ -48,7 +48,7 @@ function buildStyles(options) {
     .pipe($.sourcemaps.init({loadMaps: true}))
     .pipe($.sass().on('error', $.sass.logError))
     .pipe($.postcss(processors, {to: '.tmp/styles/main.css'}))
-    .pipe($.sourcemaps.write())
+    .pipe($.sourcemaps.write('.'))
     .pipe(gulp.dest('.tmp/styles'))
     .pipe($.if(!opts.dev, $.minifyCss({sourceMap: false})))
     .pipe($.if(!opts.dev, gulp.dest('dist/styles')));
@@ -90,7 +90,7 @@ function buildScripts(options, callback) {
           .pipe(source(path.basename(entry)))
           .pipe(buffer())
           .pipe($.sourcemaps.init({loadMaps: true}))
-          .pipe($.sourcemaps.write())
+          .pipe($.sourcemaps.write('.'))
           .pipe(gulp.dest('.tmp/scripts'))
           .pipe($.if(!options.dev, $.uglify()))
           .pipe($.if(!options.dev, gulp.dest('dist/scripts')));
