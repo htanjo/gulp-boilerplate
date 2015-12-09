@@ -38,7 +38,7 @@ gulp-boilerplate/
 
 ## Build tasks
 
-| Command              | Alias         | Task                                          |
+| Command              | Gulp task     | Summary                                       |
 |----------------------|---------------|-----------------------------------------------|
 | **`npm start`**      | `gulp serve`  | Start local development server.               |
 | **`npm run build`**  | `gulp`        | Lint code and build to production files.      |
