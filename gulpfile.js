@@ -29,7 +29,7 @@ gulp.task('lint', function () {
 //  - [development] Attach sourcemaps
 //  - [production] Minify source code
 function buildStyles(options) {
-  var opts = options || {};
+  options = options || {};
   var processors = [
     require('postcss-import')({path: '.tmp/styles'}),
     require('autoprefixer')({
@@ -44,14 +44,19 @@ function buildStyles(options) {
     require('postcss-url')({url: 'rebase'}),
     require('postcss-copy-assets')({base: '.tmp'})
   ];
-  return gulp.src('app/styles/*.scss')
+  var stream = gulp.src('app/styles/*.scss')
     .pipe($.sourcemaps.init({loadMaps: true}))
     .pipe($.sass().on('error', $.sass.logError))
     .pipe($.postcss(processors, {to: '.tmp/styles/main.css'}))
     .pipe($.sourcemaps.write('.'))
-    .pipe(gulp.dest('.tmp/styles'))
-    .pipe($.if(!opts.dev, $.minifyCss({sourceMap: false})))
-    .pipe($.if(!opts.dev, gulp.dest('dist/styles')));
+    .pipe(gulp.dest('.tmp/styles'));
+  if (!options.dev) {
+    stream
+      .pipe($.filter('*.css'))
+      .pipe($.minifyCss({sourceMap: false}))
+      .pipe(gulp.dest('dist/styles'));
+  }
+  return stream;
 }
 
 // Compile stylesheets for production
@@ -83,7 +88,7 @@ function buildScripts(options, callback) {
       };
       var bundler = options.dev ? watchify(browserify(assign({}, watchify.args, args))) : browserify(args);
       var bundle = function () {
-        return bundler.bundle()
+        var stream = bundler.bundle()
           .on('error', function (error) {
             $.util.log($.util.colors.red('Browserify error:') + '\n' + error.message);
           })
@@ -91,10 +96,15 @@ function buildScripts(options, callback) {
           .pipe(buffer())
           .pipe($.sourcemaps.init({loadMaps: true}))
           .pipe($.sourcemaps.write('.'))
-          .pipe(gulp.dest('.tmp/scripts'))
-          .pipe($.if(!options.dev, $.uglify()))
-          .pipe($.if(!options.dev, gulp.dest('dist/scripts')));
-      }
+          .pipe(gulp.dest('.tmp/scripts'));
+        if (!options.dev) {
+          stream
+            .pipe($.filter('*.js'))
+            .pipe($.uglify())
+            .pipe(gulp.dest('dist/scripts'));
+        }
+        return stream;
+      };
       if (options.dev) {
         bundler.on('update', bundle);
         bundler.on('log', $.util.log);
