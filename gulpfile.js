@@ -7,6 +7,9 @@ var buffer = require('vinyl-buffer');
 var runSequence = require('run-sequence');
 var browserify = require('browserify');
 var watchify = require('watchify');
+var glob = require('glob');
+var es = require('event-stream');
+var path = require('path');
 var assign = require('lodash.assign');
 var bs = require('browser-sync').create();
 var del = require('del');
@@ -66,41 +69,54 @@ gulp.task('styles:dev', ['sprites'], function () {
 // - [development] Watch files and build incrementally
 // - [development] Attach sourcemaps
 // - [production] Minify source code
-function buildScripts(options) {
-  var opts = options || {};
-  var args = {
-    entries: ['app/scripts/main.js'],
-    debug: true
-  };
-  var bundler = opts.dev ? watchify(browserify(assign({}, watchify.args, args))) : browserify(args);
-  var bundle = function () {
-    return bundler.bundle()
-      .on('error', function (error) {
-        $.util.log($.util.colors.red('Browserify error:') + '\n' + error.message);
-      })
-      .pipe(source('main.js'))
-      .pipe(buffer())
-      .pipe($.sourcemaps.init({loadMaps: true}))
-      .pipe($.sourcemaps.write())
-      .pipe(gulp.dest('.tmp/scripts'))
-      .pipe($.if(!opts.dev, $.uglify()))
-      .pipe($.if(!opts.dev, gulp.dest('dist/scripts')));
+function buildScripts(options, callback) {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
   }
-  if (opts.dev) {
-    bundler.on('update', bundle);
-    bundler.on('log', $.util.log);
-  }
-  return bundle();
+  options = options || {};
+  callback = callback || function () {};
+  glob('app/scripts/*.js', function (error, files) {
+    if (error) {
+      callback(error);
+    }
+    var tasks = files.map(function (entry) {
+      var args = {
+        entries: [entry],
+        debug: true
+      };
+      var bundler = options.dev ? watchify(browserify(assign({}, watchify.args, args))) : browserify(args);
+      var bundle = function () {
+        return bundler.bundle()
+          .on('error', function (error) {
+            $.util.log($.util.colors.red('Browserify error:') + '\n' + error.message);
+          })
+          .pipe(source(path.basename(entry)))
+          .pipe(buffer())
+          .pipe($.sourcemaps.init({loadMaps: true}))
+          .pipe($.sourcemaps.write())
+          .pipe(gulp.dest('.tmp/scripts'))
+          .pipe($.if(!options.dev, $.uglify()))
+          .pipe($.if(!options.dev, gulp.dest('dist/scripts')));
+      }
+      if (options.dev) {
+        bundler.on('update', bundle);
+        bundler.on('log', $.util.log);
+      }
+      return bundle();
+    });
+    es.merge(tasks).on('end', callback);
+  });
 }
 
 // Compile scripts for production
-gulp.task('scripts', function () {
-  return buildScripts();
+gulp.task('scripts', function (callback) {
+  buildScripts(callback);
 });
 
 // Compile scripts for local development
-gulp.task('scripts:dev', function () {
-  return buildScripts({dev: true});
+gulp.task('scripts:dev', function (callback) {
+  buildScripts({dev: true}, callback);
 });
 
 // Minify HTML
