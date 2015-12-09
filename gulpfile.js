@@ -11,6 +11,7 @@ var assign = require('lodash.assign');
 var bs = require('browser-sync').create();
 var del = require('del');
 
+// Lint JavaScript
 gulp.task('lint', function () {
   return gulp.src('app/scripts/**/*.js')
     .pipe($.eslint())
@@ -18,6 +19,12 @@ gulp.task('lint', function () {
     .pipe($.eslint.failAfterError());
 });
 
+// Core function to build stylesheets
+// - Compile styles and inject @import contents
+// - Add (or remove) vendor prefixes
+// - Resolve relative paths and copy assets
+// - [development] Attach sourcemaps
+// - [production] Minify source code
 function buildStyles(options) {
   var opts = options || {};
   var processors = [
@@ -44,14 +51,21 @@ function buildStyles(options) {
     .pipe($.if(!opts.dev, gulp.dest('dist/styles')));
 }
 
+// Compile stylesheets for production
 gulp.task('styles', ['sprites'], function () {
   return buildStyles();
 });
 
+// Compile stylesheets for local development
 gulp.task('styles:dev', ['sprites'], function () {
   return buildStyles({dev: true});
 });
 
+// Core function to build JavaScripts
+// - Compile scripts using Browserify
+// - [development] Watch files and build incrementally
+// - [development] Attach sourcemaps
+// - [production] Minify source code
 function buildScripts(options) {
   var opts = options || {};
   var args = {
@@ -79,14 +93,17 @@ function buildScripts(options) {
   return bundle();
 }
 
+// Compile scripts for production
 gulp.task('scripts', function () {
   return buildScripts();
 });
 
+// Compile scripts for local development
 gulp.task('scripts:dev', function () {
   return buildScripts({dev: true});
 });
 
+// Minify HTML
 gulp.task('html', function () {
   return gulp.src('app/**/*.html')
     .pipe($.htmlmin({
@@ -95,6 +112,7 @@ gulp.task('html', function () {
     .pipe(gulp.dest('dist'));
 });
 
+// Optimize images
 gulp.task('images', ['sprites'], function () {
   return gulp.src([
     'app/images/**',
@@ -109,11 +127,13 @@ gulp.task('images', ['sprites'], function () {
     .pipe(gulp.dest('dist/images'));
 });
 
+// Copy assets used in npm packages
 gulp.task('assets', ['styles'], function () {
   return gulp.src('.tmp/node_modules/**')
     .pipe(gulp.dest('dist/node_modules'));
 });
 
+// Copy all extra files like favicon, .htaccess
 gulp.task('extras', function () {
   return gulp.src([
     'app/**',
@@ -123,8 +143,12 @@ gulp.task('extras', function () {
     .pipe(gulp.dest('dist'));
 });
 
+// Cean output directories
 gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
+// Start local development server
+// - Watch files and reload automatically
+// - Sync interaction across browsers
 gulp.task('serve', ['styles:dev', 'scripts:dev'], function () {
   bs.init({
     notify: false,
@@ -141,6 +165,7 @@ gulp.task('serve', ['styles:dev', 'scripts:dev'], function () {
   gulp.watch('app/images/_sprites/*.png', ['styles:dev', bs.reload]);
 });
 
+// Start local server from the "dist" directory
 gulp.task('serve:dist', function () {
   bs.init({
     notify: false,
@@ -148,12 +173,15 @@ gulp.task('serve:dist', function () {
   });
 });
 
+// Build production files
 gulp.task('build', ['clean'], function (callback) {
   runSequence(['html', 'styles', 'scripts', 'images', 'assets', 'extras'], 'rev', callback);
 });
 
+// Lint and build files
 gulp.task('default', function (callback) {
   runSequence('lint', 'build', callback);
 });
 
+// Load custom tasks from the "task" directory
 try { require('require-dir')('tasks'); } catch (err) {}
