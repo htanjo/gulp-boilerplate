@@ -6,7 +6,7 @@ var del = require('del');
 var vinylPaths = require('vinyl-paths');
 
 gulp.task('filerev', function () {
-  return gulp.src('dist/**/*.{css,js,png,jpg,gif,ico,eot,svg,ttf,woff,woff2}')
+  return gulp.src('dist/**/*.{css,js,png,jpg,gif,eot,svg,ttf,woff,woff2}')
     .pipe(vinylPaths(del))
     .pipe($.rev())
     .pipe(gulp.dest('dist'))
