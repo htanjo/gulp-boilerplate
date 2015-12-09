@@ -178,7 +178,7 @@ gulp.task('build', ['clean'], function (callback) {
   runSequence(['html', 'styles', 'scripts', 'images', 'assets', 'extras'], 'rev', callback);
 });
 
-// Lint and build files
+// Default task: lint and build files
 gulp.task('default', function (callback) {
   runSequence('lint', 'build', callback);
 });
