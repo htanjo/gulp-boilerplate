@@ -55,14 +55,10 @@ function buildStyles(options) {
 }
 
 // Compile stylesheets for production
-gulp.task('styles', ['sprites'], function () {
-  return buildStyles();
-});
+gulp.task('styles', ['sprites'], buildStyles.bind(null));
 
 // Compile stylesheets for local development
-gulp.task('styles:dev', ['sprites'], function () {
-  return buildStyles({dev: true});
-});
+gulp.task('styles:dev', ['sprites'], buildStyles.bind(null, {dev: true}));
 
 // Core function to build JavaScripts
 // - Compile scripts using Browserify
@@ -82,7 +78,7 @@ function buildScripts(options, callback) {
     }
     var tasks = files.map(function (entry) {
       var args = {
-        entries: [entry],
+        entries: entry,
         debug: true
       };
       var bundler = options.dev ? watchify(browserify(assign({}, watchify.args, args))) : browserify(args);
@@ -110,14 +106,10 @@ function buildScripts(options, callback) {
 }
 
 // Compile scripts for production
-gulp.task('scripts', function (callback) {
-  buildScripts(callback);
-});
+gulp.task('scripts', buildScripts.bind(null));
 
 // Compile scripts for local development
-gulp.task('scripts:dev', function (callback) {
-  buildScripts({dev: true}, callback);
-});
+gulp.task('scripts:dev', buildScripts.bind(null, {dev: true}));
 
 // Minify HTML
 gulp.task('html', function () {
