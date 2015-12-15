@@ -1,12 +1,9 @@
 {
+  "extends": "xo",
   "env": {
-    "node": true,
     "browser": true
   },
   "rules": {
-    "quotes": [
-      2,
-      "single"
-    ]
+    "indent": [2, 2, {"SwitchCase": 1}]
   }
 }
