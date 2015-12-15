@@ -202,4 +202,6 @@ gulp.task('default', function (callback) {
 });
 
 // Load custom tasks from the "task" directory
-try { require('require-dir')('tasks'); } catch (err) {}
+try {
+  require('require-dir')('tasks');
+} catch (err) {}

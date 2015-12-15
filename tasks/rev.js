@@ -11,7 +11,7 @@ gulp.task('filerev', function () {
     .pipe($.rev())
     .pipe(gulp.dest('dist'))
     .pipe($.rev.manifest())
-    .pipe(gulp.dest('.tmp'))
+    .pipe(gulp.dest('.tmp'));
 });
 
 gulp.task('rev', ['filerev'], function () {
