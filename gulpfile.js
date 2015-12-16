@@ -60,10 +60,10 @@ function buildStyles(options) {
 }
 
 // Compile stylesheets for production
-gulp.task('styles', ['sprites'], buildStyles.bind(null));
+gulp.task('styles', ['sprites', 'fonts'], buildStyles.bind(null));
 
 // Compile stylesheets for local development
-gulp.task('styles:dev', ['sprites'], buildStyles.bind(null, {dev: true}));
+gulp.task('styles:dev', ['sprites', 'fonts'], buildStyles.bind(null, {dev: true}));
 
 // Core function to build JavaScripts
 //  - Compile scripts using Browserify
@@ -181,6 +181,7 @@ gulp.task('serve', ['styles:dev', 'scripts:dev'], function () {
   gulp.watch('app/scripts/**/*.js', ['lint']);
   gulp.watch('app/styles/**/*.scss', ['styles:dev', bs.reload]);
   gulp.watch('app/images/_sprites/*.png', ['styles:dev', bs.reload]);
+  gulp.watch('app/fonts/_glyphs/*.svg', ['styles:dev', bs.reload]);
 });
 
 // Start local server from the "dist" directory

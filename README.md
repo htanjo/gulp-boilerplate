@@ -29,6 +29,8 @@ gulp-boilerplate/
 │   ├── scripts/         : Scripts
 │   ├── images/          : Images
 │   │   └── _sprites/    : Base images for spritesheet
+│   ├── fonts/           : Web fonts
+│   │   └── _glyphs/     : Base SVG files for icon font
 │   └── index.html       : Index page
 ├── dist/                : Production files (Not tracked in Git)
 ├── tasks/               : Additional gulp tasks

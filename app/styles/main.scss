@@ -1,11 +1,18 @@
 @import url("bootstrap");
 @import url("sprites.css");
+@import url("glyphs.css");
 
 body {
   margin: 0;
   padding: 100px 50px;
   font-family: sans-serif;
 }
+
 .sprite {
   display: inline-block;
+}
+
+.glyph {
+  display: inline-block;
+  font-size: 100px;
 }
