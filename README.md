@@ -31,7 +31,7 @@ gulp-boilerplate/
 │   │   └── _sprites/    : Base images for spritesheet
 │   └── index.html       : Index page
 ├── dist/                : Production files (Not tracked in Git)
-├── tasks/               : Custom gulp tasks
+├── tasks/               : Additional gulp tasks
 ├── gulpfile.js          : Base gulp config
 └── package.json         : Package information including dependencies
 ```
