@@ -44,10 +44,11 @@ function buildStyles(options) {
     require('postcss-url')({url: 'rebase'}),
     require('postcss-copy-assets')({base: '.tmp'})
   ];
-  var stream = gulp.src('app/styles/*.scss')
+  var stream = gulp.src('app/styles/*.scss', {base: '.'})
     .pipe($.sourcemaps.init({loadMaps: true}))
     .pipe($.sass().on('error', $.sass.logError))
     .pipe($.postcss(processors, {to: '.tmp/styles/main.css'}))
+    .pipe($.rename({dirname: '.'}))
     .pipe($.sourcemaps.write('.'))
     .pipe(gulp.dest('.tmp/styles'));
   if (!options.dev) {
