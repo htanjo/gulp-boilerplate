@@ -31,7 +31,7 @@ gulp.task('lint', function () {
 function buildStyles(options) {
   options = options || {};
   var processors = [
-    require('postcss-import')({path: '.tmp/styles'}),
+    require('postcss-import')(),
     require('autoprefixer')({
       browsers: [
         'last 2 versions',
@@ -146,18 +146,21 @@ gulp.task('images', ['sprites'], function () {
     .pipe(gulp.dest('dist/images'));
 });
 
-// Copy assets used in npm packages
+// Copy assets
 gulp.task('assets', ['styles'], function () {
-  return gulp.src('.tmp/node_modules/**')
-    .pipe(gulp.dest('dist/node_modules'));
+  return gulp.src([
+    '.tmp/fonts/**',
+    '.tmp/node_modules/**'
+  ], {base: '.tmp'})
+    .pipe(gulp.dest('dist'));
 });
 
 // Copy all extra files like favicon, .htaccess
 gulp.task('extras', function () {
   return gulp.src([
     'app/**',
-    '!app/{styles,scripts,images}/**',
-    '!**/.DS_Store'
+    '!app/{styles,scripts,images,fonts}/**',
+    '!**/{*.html,.DS_Store}'
   ], {dot: true})
     .pipe(gulp.dest('dist'));
 });

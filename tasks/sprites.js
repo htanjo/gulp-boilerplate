@@ -5,7 +5,7 @@ var $ = require('gulp-load-plugins')();
 
 gulp.task('sprites', function () {
   return gulp.src('app/images/_sprites/*.png')
-    .pipe($.newer('.tmp/images/sprites.png'))
+    .pipe($.newer('app/images/sprites.png'))
     .pipe($.spritesmith({
       imgName: 'images/sprites.png',
       cssName: 'styles/sprites.css',
@@ -16,5 +16,5 @@ gulp.task('sprites', function () {
         }
       }
     }))
-    .pipe(gulp.dest('.tmp'));
+    .pipe(gulp.dest('app'));
 });

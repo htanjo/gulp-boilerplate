@@ -5,7 +5,7 @@ var $ = require('gulp-load-plugins')();
 
 gulp.task('fonts', function () {
   return gulp.src('app/fonts/_glyphs/*.svg')
-    .pipe($.newer('.tmp/styles/glyphs.css'))
+    .pipe($.newer('app/styles/glyphs.css'))
     .pipe($.iconfontCss({
       fontName: 'glyphs',
       targetPath: '../styles/glyphs.css',   // Relative path from gulp.dest()
@@ -17,7 +17,7 @@ gulp.task('fonts', function () {
       appendUnicode: true,
       formats: ['eot', 'woff2', 'woff', 'ttf', 'svg']
     }))
-    .pipe(gulp.dest('.tmp/fonts'))
+    .pipe(gulp.dest('app/fonts'))
     .pipe($.filter(['*', '!*.css']))
     .pipe(gulp.dest('dist/fonts'));
 });
