@@ -52,3 +52,7 @@ gulp-boilerplate/
 
 - **`npm run deploy`**  
   Deploy production files to `gh-pages` branch.
+
+## License
+Copyright (c) 2015-2016 Hiroyuki Tanjo.
+Licensed under the [MIT License](LICENSE).
