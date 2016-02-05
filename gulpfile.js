@@ -4,15 +4,22 @@ var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
+var globby = require('globby');
+var mergeStream = require('merge-stream');
+var path = require('path');
 var runSequence = require('run-sequence');
 var browserify = require('browserify');
 var watchify = require('watchify');
-var glob = require('glob');
-var es = require('event-stream');
-var path = require('path');
-var assign = require('lodash.assign');
 var bs = require('browser-sync').create();
 var del = require('del');
+
+var browsers = [
+  'last 2 versions',
+  'Explorer >= 8',
+  'Firefox ESR',
+  'Android >= 2.3',
+  'iOS >= 7'
+];
 
 // Lint JavaScript
 gulp.task('lint', function () {
@@ -22,105 +29,70 @@ gulp.task('lint', function () {
     .pipe($.eslint.failAfterError());
 });
 
-// Core function to build stylesheets
-//  - Compile styles and inject @import contents
-//  - Add (or remove) vendor prefixes
-//  - Resolve relative paths and copy assets
-//  - [development] Attach sourcemaps
-//  - [production] Minify source code
-function buildStyles(options) {
-  options = options || {};
-  var processors = [
-    require('postcss-import')(),
-    require('autoprefixer')({
-      browsers: [
-        'last 2 versions',
-        'Explorer >= 8',
-        'Firefox ESR',
-        'Android >= 2.3',
-        'iOS >= 7'
-      ]
-    }),
-    require('postcss-url')({url: 'rebase'}),
-    require('postcss-copy-assets')({base: '.tmp'})
-  ];
-  var stream = gulp.src('app/styles/*.scss', {base: '.'})
+// Build stylesheets for local development
+gulp.task('styles:dev', ['sprites', 'fonts'], function () {
+  return gulp.src('app/styles/**/*.scss')
     .pipe($.sourcemaps.init({loadMaps: true}))
     .pipe($.sass().on('error', $.sass.logError))
-    .pipe($.postcss(processors, {to: '.tmp/styles/main.css'}))
-    .pipe($.rename({dirname: '.'}))
+    .pipe($.autoprefixer({browsers: browsers}))
     .pipe($.sourcemaps.write('.'))
     .pipe(gulp.dest('.tmp/styles'));
-  if (!options.dev) {
-    stream
-      .pipe($.filter('*.css'))
-      .pipe($.minifyCss({sourceMap: false}))
-      .pipe(gulp.dest('dist/styles'));
-  }
-  return stream;
-}
+});
 
-// Compile stylesheets for production
-gulp.task('styles', ['sprites', 'fonts'], buildStyles.bind(null));
+// Build stylesheets for production
+gulp.task('styles', ['sprites', 'fonts'], function () {
+  return gulp.src('app/styles/**/*.scss')
+    .pipe($.sass().on('error', $.sass.logError))
+    .pipe($.autoprefixer({browsers: browsers}))
+    .pipe($.minifyCss({sourceMap: false}))
+    .pipe(gulp.dest('dist/styles'));
+});
 
-// Compile stylesheets for local development
-gulp.task('styles:dev', ['sprites', 'fonts'], buildStyles.bind(null, {dev: true}));
-
-// Core function to build JavaScripts
-//  - Compile scripts using Browserify
-//  - [development] Watch files and build incrementally
-//  - [development] Attach sourcemaps
-//  - [production] Minify source code
-function buildScripts(options, callback) {
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-  options = options || {};
-  callback = callback || function () {};
-  glob('app/scripts/*.js', function (error, files) {
-    if (error) {
-      callback(error);
-    }
-    var tasks = files.map(function (entry) {
-      var args = {
-        entries: entry,
-        debug: true
-      };
-      var bundler = options.dev ? watchify(browserify(assign({}, watchify.args, args))) : browserify(args);
-      var bundle = function () {
-        var stream = bundler.bundle()
-          .on('error', function (error) {
-            $.util.log($.util.colors.red('Browserify error:') + '\n' + error.message);
-          })
-          .pipe(source(path.basename(entry)))
-          .pipe(buffer())
-          .pipe($.sourcemaps.init({loadMaps: true}))
-          .pipe($.sourcemaps.write('.'))
-          .pipe(gulp.dest('.tmp/scripts'));
-        if (!options.dev) {
-          stream
-            .pipe($.filter('*.js'))
-            .pipe($.uglify())
-            .pipe(gulp.dest('dist/scripts'));
-        }
-        return stream;
-      };
-      if (options.dev) {
-        bundler.on('update', bundle);
-        bundler.on('log', $.util.log);
-      }
-      return bundle();
+// Build and watch scripts for local development
+gulp.task('scripts:dev', function () {
+  var stream = mergeStream();
+  globby.sync('app/scripts/*.js').forEach(function (file) {
+    var bundler = browserify({
+      entries: file,
+      cache: {},
+      packageCache: {},
+      plugin: [watchify],
+      debug: true
     });
-    es.merge(tasks).on('end', callback);
+    bundler
+      .on('log', $.util.log)
+      .on('update', bundle);
+    stream.add(bundle());
+    function bundle() {
+      return bundler.bundle()
+        .on('error', function (error) {
+          $.util.log($.util.colors.red('Browserify error:') + '\n' + error.message);
+          this.emit('end');
+        })
+        .pipe(source(path.relative('app/scripts', file)))
+        .pipe(gulp.dest('.tmp/scripts'));
+    }
   });
-}
+  return stream.isEmpty() ? null : stream;
+});
 
-// Compile scripts for production
-gulp.task('scripts', buildScripts.bind(null));
-
-// Compile scripts for local development
-gulp.task('scripts:dev', buildScripts.bind(null, {dev: true}));
+// Build scripts for production
+gulp.task('scripts', function () {
+  var stream = mergeStream();
+  globby.sync('app/scripts/*.js').forEach(function (file) {
+    var bundleStream = browserify(file).bundle()
+      .on('error', function (error) {
+        $.util.log($.util.colors.red('Browserify error:') + '\n' + error.message);
+        this.emit('end');
+      })
+      .pipe(source(path.relative('app/scripts', file)))
+      .pipe(buffer())
+      .pipe($.uglify())
+      .pipe(gulp.dest('dist/scripts'));
+    stream.add(bundleStream);
+  });
+  return stream.isEmpty() ? null : stream;
+});
 
 // Minify HTML
 gulp.task('html', function () {
@@ -135,8 +107,7 @@ gulp.task('html', function () {
 gulp.task('images', ['sprites'], function () {
   return gulp.src([
     'app/images/**',
-    '!app/images/_*{,/**}',
-    '.tmp/images/**'
+    '!app/images/_*{,/**}'
   ])
     .pipe($.cache($.imagemin({
       progressive: true,
@@ -146,32 +117,25 @@ gulp.task('images', ['sprites'], function () {
     .pipe(gulp.dest('dist/images'));
 });
 
-// Copy assets
-gulp.task('assets', ['styles'], function () {
-  return gulp.src([
-    '.tmp/fonts/**',
-    '.tmp/node_modules/**'
-  ], {base: '.tmp'})
-    .pipe(gulp.dest('dist'));
-});
-
 // Copy all extra files like favicon, .htaccess
 gulp.task('extras', function () {
   return gulp.src([
     'app/**',
-    '!app/{styles,scripts,images,fonts}/**',
+    '!app/{styles,scripts,images}/**',
+    '!app/fonts/_*{,/**}',
     '!**/{*.html,.DS_Store}'
   ], {dot: true})
     .pipe(gulp.dest('dist'));
 });
 
 // Cean output directories
-gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
+gulp.task('clean:tmp', del.bind(null, '.tmp'));
+gulp.task('clean:dist', del.bind(null, 'dist'));
 
 // Start local development server
 //  - Watch files and reload automatically
 //  - Sync interaction across browsers
-gulp.task('serve', ['styles:dev', 'scripts:dev'], function () {
+gulp.task('serve', ['pre:serve'], function () {
   bs.init({
     notify: false,
     server: {
@@ -188,6 +152,10 @@ gulp.task('serve', ['styles:dev', 'scripts:dev'], function () {
   gulp.watch('app/fonts/_glyphs/*.svg', ['styles:dev', bs.reload]);
 });
 
+gulp.task('pre:serve', function (callback) {
+  runSequence('clean:tmp', ['styles:dev', 'scripts:dev'], callback);
+});
+
 // Start local server from the "dist" directory
 gulp.task('serve:dist', function () {
   bs.init({
@@ -197,8 +165,8 @@ gulp.task('serve:dist', function () {
 });
 
 // Build production files
-gulp.task('build', ['clean'], function (callback) {
-  runSequence(['html', 'styles', 'scripts', 'images', 'assets', 'extras'], 'rev', callback);
+gulp.task('build', function (callback) {
+  runSequence('clean:dist', ['html', 'styles', 'scripts', 'images', 'extras'], 'rev', callback);
 });
 
 // Default task: lint and build files
