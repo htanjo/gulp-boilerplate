@@ -47,5 +47,8 @@ gulp-boilerplate/
 - **`npm run build`**  
   Run linter and build app for production.
 
+- **`npm run serve:dist`**  
+  Start server with production files.
+
 - **`npm run deploy`**  
   Deploy production files to `gh-pages` branch.
