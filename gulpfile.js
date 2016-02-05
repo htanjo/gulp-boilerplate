@@ -20,6 +20,7 @@ var browsers = [
   'Android >= 2.3',
   'iOS >= 7'
 ];
+var entries = [];
 
 // Lint JavaScript
 gulp.task('lint', function () {
@@ -52,6 +53,9 @@ gulp.task('styles', ['sprites', 'fonts'], function () {
 gulp.task('scripts:dev', function () {
   var stream = mergeStream();
   globby.sync('app/scripts/*.js').forEach(function (file) {
+    if (entries.indexOf(file) !== -1) {
+      return;
+    }
     var bundler = browserify({
       entries: file,
       cache: {},
@@ -63,6 +67,7 @@ gulp.task('scripts:dev', function () {
       .on('log', $.util.log)
       .on('update', bundle);
     stream.add(bundle());
+    entries.push(file);
     function bundle() {
       return bundler.bundle()
         .on('error', function (error) {
@@ -140,6 +145,11 @@ gulp.task('serve', ['pre:serve'], function () {
       baseDir: ['.tmp', 'app']
     },
     files: ['app/**/*.html', '.tmp/**']
+  });
+  gulp.watch('app/scripts/*.js', function (event) {
+    if (event.type === 'added' || event.type === 'renamed') {
+      runSequence('scripts:dev');
+    }
   });
   gulp.watch('app/scripts/**/*.js', ['lint']);
   gulp.watch('app/styles/**/*.scss', ['styles:dev']);
