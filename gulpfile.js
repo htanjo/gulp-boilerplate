@@ -132,24 +132,19 @@ gulp.task('extras', function () {
 gulp.task('clean:tmp', del.bind(null, '.tmp'));
 gulp.task('clean:dist', del.bind(null, 'dist'));
 
-// Start local development server
-//  - Watch files and reload automatically
-//  - Sync interaction across browsers
+// Start browsersync development server
 gulp.task('serve', ['pre:serve'], function () {
   bs.init({
     notify: false,
     server: {
       baseDir: ['.tmp', 'app']
-    }
+    },
+    files: ['app/**/*.html', '.tmp/**']
   });
-  gulp.watch([
-    'app/**/*.html',
-    '.tmp/scripts/**/*.js'
-  ]).on('change', bs.reload);
   gulp.watch('app/scripts/**/*.js', ['lint']);
-  gulp.watch('app/styles/**/*.scss', ['styles:dev', bs.reload]);
-  gulp.watch('app/images/_sprites/*.png', ['styles:dev', bs.reload]);
-  gulp.watch('app/fonts/_glyphs/*.svg', ['styles:dev', bs.reload]);
+  gulp.watch('app/styles/**/*.scss', ['styles:dev']);
+  gulp.watch('app/images/_sprites/*.png', ['styles:dev']);
+  gulp.watch('app/fonts/_glyphs/*.svg', ['styles:dev']);
 });
 
 gulp.task('pre:serve', function (callback) {
