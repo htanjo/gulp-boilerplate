@@ -17,7 +17,5 @@ gulp.task('fonts', function () {
       appendUnicode: true,
       formats: ['eot', 'woff2', 'woff', 'ttf', 'svg']
     }))
-    .pipe(gulp.dest('app/fonts'))
-    .pipe($.filter(['*', '!*.css']))
-    .pipe(gulp.dest('dist/fonts'));
+    .pipe(gulp.dest('app/fonts'));
 });
