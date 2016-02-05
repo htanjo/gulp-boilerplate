@@ -2,8 +2,7 @@
 > Boilerplate for gulp project.
 
 ## Getting started
-Make sure to install [Node.js](https://nodejs.org/).  
-If you prefer `gulp` command to `npm run *`, install gulp globally: `npm install -g gulp`
+Make sure to install [Node.js](https://nodejs.org/).
 
 ### Install dependencies
 ```sh
@@ -21,7 +20,6 @@ This starts local development server and "watch" tasks.
 When you save a source code, it will be compiled and reload browser automatically.
 
 ## Structure
-
 ```
 gulp-boilerplate/
 ├── app/                 : Application files
@@ -39,9 +37,15 @@ gulp-boilerplate/
 ```
 
 ## Build tasks
+- **`npm start`**  
+  Start local development server and watch files to compile/lint.  
+  [Cntl + C] to exit.
 
-| Command              | Gulp task     | Summary                                       |
-|----------------------|---------------|-----------------------------------------------|
-| **`npm start`**      | `gulp serve`  | Start local development server.               |
-| **`npm run build`**  | `gulp`        | Lint code and build to production files.      |
-| **`npm run deploy`** | `gulp deploy` | Deploy production files to `gh-pages` branch. |
+- **`npm test`**  
+  Run linter.
+
+- **`npm run build`**  
+  Run linter and build app for production.
+
+- **`npm run deploy`**  
+  Deploy production files to `gh-pages` branch.

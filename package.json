@@ -4,8 +4,8 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "lint": "gulp lint",
     "start": "gulp serve",
+    "test": "gulp lint",
     "build": "gulp",
     "deploy": "gulp deploy"
   },
