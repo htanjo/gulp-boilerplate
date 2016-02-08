@@ -49,6 +49,41 @@ gulp.task('styles', ['sprites', 'fonts'], function () {
     .pipe(gulp.dest('dist/styles'));
 });
 
+// Generate CSS sprites from PNG files
+gulp.task('sprites', function () {
+  return gulp.src('app/images/_sprites/*.png')
+    .pipe($.newer('app/images/sprites.png'))
+    .pipe($.spritesmith({
+      imgName: 'images/sprites.png',
+      cssName: 'styles/sprites.css',
+      padding: 2,
+      cssOpts: {
+        cssSelector: function (item) {
+          return '.sprite-' + item.name;
+        }
+      }
+    }))
+    .pipe(gulp.dest('app'));
+});
+
+// Generate icon fonts from SVG files
+gulp.task('fonts', function () {
+  return gulp.src('app/fonts/_glyphs/*.svg')
+    .pipe($.newer('app/styles/glyphs.css'))
+    .pipe($.iconfontCss({
+      fontName: 'glyphs',
+      targetPath: '../styles/glyphs.css',   // Relative path from gulp.dest()
+      fontPath: '../fonts/',                // Base url(...) in CSS code
+      cssClass: 'glyph'
+    }))
+    .pipe($.iconfont({
+      fontName: 'glyphs',
+      appendUnicode: true,
+      formats: ['eot', 'woff2', 'woff', 'ttf', 'svg']
+    }))
+    .pipe(gulp.dest('app/fonts'));
+});
+
 // Build and watch scripts for local development
 gulp.task('scripts:dev', function () {
   var stream = mergeStream();
