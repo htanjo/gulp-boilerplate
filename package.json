@@ -37,7 +37,6 @@
     "gulp-util": "^3.0.7",
     "gulp.spritesmith": "^6.0.0",
     "merge-stream": "^1.0.0",
-    "require-dir": "^0.3.0",
     "run-sequence": "^1.1.4",
     "vinyl-buffer": "^1.0.0",
     "vinyl-paths": "^2.1.0",

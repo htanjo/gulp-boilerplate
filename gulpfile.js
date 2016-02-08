@@ -237,8 +237,3 @@ gulp.task('deploy', ['default'], function () {
 gulp.task('default', function (callback) {
   runSequence('lint', 'build', callback);
 });
-
-// Load custom tasks from the "task" directory
-try {
-  require('require-dir')('tasks');
-} catch (err) {}
