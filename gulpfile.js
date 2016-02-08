@@ -4,6 +4,7 @@ var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
+var vinylPaths = require('vinyl-paths');
 var globby = require('globby');
 var mergeStream = require('merge-stream');
 var path = require('path');
@@ -168,7 +169,24 @@ gulp.task('extras', function () {
     .pipe(gulp.dest('dist'));
 });
 
-// Cean output directories
+// Static asset revisioning: "main.css" -> "main-e90e18eef7.css"
+gulp.task('filerev', function () {
+  return gulp.src('dist/**/*.{css,js,png,jpg,gif,eot,svg,ttf,woff,woff2}')
+    .pipe(vinylPaths(del))
+    .pipe($.rev())
+    .pipe(gulp.dest('dist'))
+    .pipe($.rev.manifest())
+    .pipe(gulp.dest('.tmp'));
+});
+
+gulp.task('rev', ['filerev'], function () {
+  var manifest = gulp.src('.tmp/rev-manifest.json');
+  return gulp.src('dist/**/*.{html,css}')
+    .pipe($.revReplace({manifest: manifest}))
+    .pipe(gulp.dest('dist'));
+});
+
+// Clean output directories
 gulp.task('clean:tmp', del.bind(null, '.tmp'));
 gulp.task('clean:dist', del.bind(null, 'dist'));
 
@@ -207,6 +225,12 @@ gulp.task('serve:dist', function () {
 // Build production files
 gulp.task('build', function (callback) {
   runSequence('clean:dist', ['html', 'styles', 'scripts', 'images', 'extras'], 'rev', callback);
+});
+
+// Push production files to "gh-pages" branch
+gulp.task('deploy', ['default'], function () {
+  return gulp.src('dist/**/*')
+    .pipe($.ghPages());
 });
 
 // Default task: lint and build files
